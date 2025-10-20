@@ -10,6 +10,7 @@ ini_set('display_errors', 0);
 require_once __DIR__ . '/../../includes/config.php';
 require_once __DIR__ . '/../../includes/db.php';
 require_once __DIR__ . '/../../includes/auth.php';
+require_once __DIR__ . '/../../includes/helpers.php';
 
 header('Content-Type: application/json');
 
@@ -19,6 +20,11 @@ try {
     switch ($method) {
         case 'GET':
             handleGet();
+            break;
+
+        case 'POST':
+            auth()->requireAuth();
+            handlePost();
             break;
 
         case 'DELETE':
@@ -97,6 +103,50 @@ function handleGet() {
             'has_more' => ($offset + $limit) < $total
         ]
     ]);
+}
+
+function handlePost() {
+    $input = json_decode(file_get_contents('php://input'), true);
+
+    if (!$input) {
+        jsonResponse(['error' => 'Invalid JSON input'], 400);
+    }
+
+    // Validate required fields
+    $required = ['monitoring_key', 'sync_type', 'status', 'message'];
+    foreach ($required as $field) {
+        if (!isset($input[$field])) {
+            jsonResponse(['error' => "Field {$field} is required"], 400);
+        }
+    }
+
+    try {
+        $sql = "INSERT INTO sync_logs (
+                    monitoring_key, sync_type, status, message,
+                    total_periods, successful_periods, failed_periods,
+                    started_at, completed_at, duration_seconds
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW(), ?)";
+
+        db()->execute($sql, [
+            $input['monitoring_key'],
+            $input['sync_type'],
+            $input['status'],
+            $input['message'],
+            $input['total_periods'] ?? 0,
+            $input['successful'] ?? $input['successful_periods'] ?? 0,
+            $input['failed'] ?? $input['failed_periods'] ?? 0,
+            $input['duration'] ?? $input['duration_seconds'] ?? 0
+        ]);
+
+        jsonResponse([
+            'success' => true,
+            'message' => 'Log saved successfully',
+            'id' => db()->lastInsertId()
+        ], 201);
+    } catch (Exception $e) {
+        error_log("Failed to save log: " . $e->getMessage());
+        jsonResponse(['error' => 'Failed to save log', 'message' => $e->getMessage()], 500);
+    }
 }
 
 function handleDelete() {

@@ -2,6 +2,19 @@
 
 ## [Rilis Terbaru] - 2025-10-20
 
+### Fix API Sync Logs (20 Oktober 2025 - Malam)
+- **Memperbaiki error "Unexpected token '<'" di Tab Log:**
+  - Fix missing jsonResponse() function (sudah ada di helpers.php)
+  - Tambah POST handler untuk menyimpan log dari manual sync
+  - Update endpoint logging dari `../api/monitoring-data/` ke `../api/sync-logs/`
+  - Validasi input JSON untuk POST request
+
+### File yang Diubah
+- `api/sync-logs/index.php` - Fix jsonResponse dan tambah POST handler
+- `assets/js/admin-sync.js` - Update endpoint logging ke `/api/sync-logs/`
+
+---
+
 ### Penambahan Tab Log & Database Logging (20 Oktober 2025 - Sore/Malam)
 - **Menambahkan Tab Log di Admin Dashboard:**
   - Tab baru "Log" untuk melihat riwayat sinkronisasi

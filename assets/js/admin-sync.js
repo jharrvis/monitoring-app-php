@@ -160,15 +160,15 @@ async function syncAllData() {
         console.log(`[Sync All] Completed in ${syncDuration}s - Success: ${totalSynced}, Failed: ${totalFailed}`);
 
         // Log to database (best effort, don't block on failure)
-        fetch('../api/monitoring-data/index.php', {
+        fetch('../api/sync-logs/index.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'log_sync',
                 monitoring_key: 'ALL',
                 sync_type: 'manual',
                 status: totalFailed === 0 ? 'success' : (totalSynced > 0 ? 'success' : 'error'),
                 message: `Sync All Data completed: ${totalSynced} berhasil, ${totalFailed} gagal`,
+                total_periods: totalSynced + totalFailed,
                 successful: totalSynced,
                 failed: totalFailed,
                 duration: syncDuration
@@ -312,15 +312,15 @@ async function syncLatestData() {
         console.log(`[Sync Latest] Completed in ${syncDuration}s - Success: ${totalSynced}, Failed: ${totalFailed}`);
 
         // Log to database (best effort)
-        fetch('../api/monitoring-data/index.php', {
+        fetch('../api/sync-logs/index.php', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                action: 'log_sync',
                 monitoring_key: 'LATEST',
                 sync_type: 'manual',
                 status: totalFailed === 0 ? 'success' : (totalSynced > 0 ? 'success' : 'error'),
                 message: `Sync Latest Data completed: ${totalSynced} berhasil, ${totalFailed} gagal`,
+                total_periods: totalSynced + totalFailed,
                 successful: totalSynced,
                 failed: totalFailed,
                 duration: syncDuration
