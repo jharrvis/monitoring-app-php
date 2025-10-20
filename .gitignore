@@ -1,0 +1,51 @@
+# Dependencies
+/vendor/
+/node_modules/
+
+# Logs
+logs/*.log
+logs/*.txt
+!logs/.gitkeep
+
+# Environment
+.env
+.env.local
+.env.production
+
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Session files
+/logs/sessions/*
+!logs/sessions/.gitkeep
+
+# Uploads (if any)
+/uploads/*
+!uploads/.gitkeep
+
+# Composer
+composer.lock
+composer.phar
+
+# Test files
+test-*.php
+debug-*.php
