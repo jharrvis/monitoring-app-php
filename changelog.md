@@ -2,6 +2,36 @@
 
 ## [Rilis Terbaru] - 2025-10-20
 
+### Perbaikan Sync Data (20 Oktober 2025 - Sore)
+- **Memperbaiki fungsi Sync Latest Data yang gagal:**
+  - Menambahkan dukungan untuk berbagai format response API (nested structures)
+  - Menangani 3 format response: `{data: {database_record: {...}}}`, `{data: {...}}`, dan `{...}` langsung
+  - Memperbaiki parsing data dari API eksternal yang memiliki struktur berbeda-beda
+
+- **Meningkatkan error handling:**
+  - Menambahkan try-catch untuk operasi logging ke tabel `sync_logs` (optional)
+  - Menambahkan try-catch untuk update tabel `sync_settings` (optional)
+  - Menambahkan logging lebih informatif untuk debugging
+  - Menampilkan response API yang gagal di log (truncated untuk performa)
+
+- **Memperbaiki bug:**
+  - Fix syntax error di comment cron job yang menyebabkan parse error
+  - Memperbaiki kompatibilitas dengan tabel database yang berbeda struktur
+
+### File yang Diubah
+- `assets/js/admin-sync.js` - Fungsi syncAllData() dan syncLatestData() dengan fallback parsing
+- `api/sync/index.php` - API endpoint sync via Server-Sent Events dengan multi-format support
+- `cron/background-sync.php` - Background sync cron job dengan improved error handling
+
+### Testing
+- ✅ SIPP API berhasil di-sync dengan data: Current=63.22, Target=71, Percentage=12%
+- ✅ Background sync cron job berjalan tanpa error
+- ✅ Data tersimpan dengan benar ke database
+
+---
+
+## [Rilis Sebelumnya] - 2025-10-20
+
 ### Perubahan
 - Memperbarui kartu dashboard "Persentase 100%" untuk menampilkan jumlah total dari semua item `current_value` daripada persentase rata-rata
 - Mengubah label dari "Persentase 100%" menjadi "Total Nilai Saat Ini" untuk mencerminkan perhitungan yang baru

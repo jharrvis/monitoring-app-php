@@ -94,10 +94,25 @@ async function syncAllData() {
                         const dataResponse = await fetch(apiUrl);
                         const apiData = await dataResponse.json();
 
-                        if (apiData && apiData.current_value !== undefined) {
+                        // Check if response has nested data structure or direct structure
+                        let responseData = null;
+
+                        // Try different response structures
+                        if (apiData.data?.database_record?.current_value !== undefined) {
+                            // Structure: {data: {database_record: {current_value, target_value}}}
+                            responseData = apiData.data.database_record;
+                        } else if (apiData.data?.current_value !== undefined) {
+                            // Structure: {data: {current_value, target_value}}
+                            responseData = apiData.data;
+                        } else if (apiData.current_value !== undefined) {
+                            // Structure: {current_value, target_value}
+                            responseData = apiData;
+                        }
+
+                        if (responseData && responseData.current_value !== undefined) {
                             // Use target_value from API response if available, otherwise default to config.max_value
-                            const targetValue = apiData.target_value !== undefined ? apiData.target_value : config.max_value;
-                            
+                            const targetValue = responseData.target_value !== undefined ? responseData.target_value : config.max_value;
+
                             const saveResponse = await fetch('../api/monitoring-data/index.php', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -105,7 +120,7 @@ async function syncAllData() {
                                     monitoring_id: config.id,
                                     year: year,
                                     quarter: quarter,
-                                    current_value: apiData.current_value,
+                                    current_value: responseData.current_value,
                                     target_value: targetValue
                                 })
                             });
@@ -116,6 +131,9 @@ async function syncAllData() {
                             } else {
                                 totalFailed++;
                             }
+                        } else {
+                            console.warn(`Invalid data structure for ${config.monitoring_name} ${year}-Q${quarter}:`, apiData);
+                            totalFailed++;
                         }
                     } catch (error) {
                         console.error(`Failed to sync ${config.monitoring_name} ${year}-Q${quarter}:`, error);
@@ -196,10 +214,25 @@ async function syncLatestData() {
                 const dataResponse = await fetch(apiUrl);
                 const apiData = await dataResponse.json();
 
-                if (apiData && apiData.current_value !== undefined) {
+                // Check if response has nested data structure or direct structure
+                let responseData = null;
+
+                // Try different response structures
+                if (apiData.data?.database_record?.current_value !== undefined) {
+                    // Structure: {data: {database_record: {current_value, target_value}}}
+                    responseData = apiData.data.database_record;
+                } else if (apiData.data?.current_value !== undefined) {
+                    // Structure: {data: {current_value, target_value}}
+                    responseData = apiData.data;
+                } else if (apiData.current_value !== undefined) {
+                    // Structure: {current_value, target_value}
+                    responseData = apiData;
+                }
+
+                if (responseData && responseData.current_value !== undefined) {
                     // Use target_value from API response if available, otherwise default to config.max_value
-                    const targetValue = apiData.target_value !== undefined ? apiData.target_value : config.max_value;
-                    
+                    const targetValue = responseData.target_value !== undefined ? responseData.target_value : config.max_value;
+
                     const saveResponse = await fetch('../api/monitoring-data/index.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -207,7 +240,7 @@ async function syncLatestData() {
                             monitoring_id: config.id,
                             year: currentYear,
                             quarter: currentQuarter,
-                            current_value: apiData.current_value,
+                            current_value: responseData.current_value,
                             target_value: targetValue
                         })
                     });
@@ -219,6 +252,7 @@ async function syncLatestData() {
                         totalFailed++;
                     }
                 } else {
+                    console.warn(`Invalid data structure for ${config.monitoring_name}:`, apiData);
                     totalFailed++;
                 }
             } catch (error) {

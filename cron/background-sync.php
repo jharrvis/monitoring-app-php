@@ -4,7 +4,8 @@
  * Run this script via cron job every 30 minutes
  *
  * Cron example:
- * */30 * * * * php /path/to/monitoring-app-php/cron/background-sync.php >> /path/to/logs/cron.log 2>&1
+ * (star)/30 * * * * php /path/to/monitoring-app-php/cron/background-sync.php >> /path/to/logs/cron.log 2>&1
+ * Replace (star) with actual asterisk symbol
  */
 
 require_once __DIR__ . '/../includes/config.php';
@@ -66,13 +67,28 @@ try {
 
             $data = json_decode($response, true);
 
-            if (!$data || !isset($data['current_value']) || !isset($data['target_value'])) {
-                writeLog("  ERROR: Invalid data format");
+            // Check if response has nested data structure or direct structure
+            $responseData = null;
+
+            // Try different response structures
+            if (isset($data['data']['database_record']['current_value'])) {
+                // Structure: {data: {database_record: {current_value, target_value}}}
+                $responseData = $data['data']['database_record'];
+            } elseif (isset($data['data']['current_value'])) {
+                // Structure: {data: {current_value, target_value}}
+                $responseData = $data['data'];
+            } elseif (isset($data['current_value'])) {
+                // Structure: {current_value, target_value}
+                $responseData = $data;
+            }
+
+            if (!$responseData || !isset($responseData['current_value']) || !isset($responseData['target_value'])) {
+                writeLog("  ERROR: Invalid data format - Response: " . substr(json_encode($data), 0, 500));
                 continue;
             }
 
-            $currentValue = floatval($data['current_value']);
-            $targetValue = floatval($data['target_value']);
+            $currentValue = floatval($responseData['current_value']);
+            $targetValue = floatval($responseData['target_value']);
             $percentage = $targetValue > 0 ? ($currentValue / $targetValue) * 100 : 0;
             $percentage = min($percentage, $config['max_value']);
 
@@ -101,34 +117,48 @@ try {
                 writeLog("  Inserted: Current={$currentValue}, Target={$targetValue}, Percentage=" . round($percentage, 2) . "%");
             }
 
-            // Log sync
-            db()->execute(
-                "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
-                 VALUES (?, ?, ?, 'success', 'Background sync completed', NOW())",
-                [$config['monitoring_key'], $currentYear, $currentQuarter]
-            );
+            // Log sync (optional - if table exists)
+            try {
+                db()->execute(
+                    "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
+                     VALUES (?, ?, ?, 'success', 'Background sync completed', NOW())",
+                    [$config['monitoring_key'], $currentYear, $currentQuarter]
+                );
+            } catch (Exception $logErr) {
+                // If sync_logs table structure is different or doesn't exist, just log it
+                writeLog("  Note: Could not log to sync_logs table");
+            }
 
             writeLog("  SUCCESS");
 
         } catch (Exception $e) {
             writeLog("  ERROR: " . $e->getMessage());
 
-            // Log error
-            db()->execute(
-                "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
-                 VALUES (?, ?, ?, 'error', ?, NOW())",
-                [$config['monitoring_key'], $currentYear, $currentQuarter, $e->getMessage()]
-            );
+            // Log error (optional)
+            try {
+                db()->execute(
+                    "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
+                     VALUES (?, ?, ?, 'error', ?, NOW())",
+                    [$config['monitoring_key'], $currentYear, $currentQuarter, $e->getMessage()]
+                );
+            } catch (Exception $logErr) {
+                // Ignore if can't log
+            }
         }
 
         // Small delay between requests
         usleep(500000); // 500ms
     }
 
-    // Update sync settings
-    db()->execute(
-        "UPDATE sync_settings SET last_sync_time = NOW() WHERE id = 1"
-    );
+    // Update sync settings (if table exists)
+    try {
+        db()->execute(
+            "UPDATE sync_settings SET last_sync_time = NOW() WHERE id = 1"
+        );
+    } catch (Exception $e) {
+        // Ignore if table doesn't exist
+        writeLog("Note: sync_settings table not found (optional)");
+    }
 
     writeLog("=== Background Sync Completed Successfully ===\n");
 

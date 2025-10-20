@@ -94,19 +94,34 @@ try {
 
                 $data = json_decode($response, true);
 
-                if (!$data || !isset($data['current_value']) || !isset($data['target_value'])) {
+                // Check if response has nested data structure or direct structure
+                $responseData = null;
+
+                // Try different response structures
+                if (isset($data['data']['database_record']['current_value'])) {
+                    // Structure: {data: {database_record: {current_value, target_value}}}
+                    $responseData = $data['data']['database_record'];
+                } elseif (isset($data['data']['current_value'])) {
+                    // Structure: {data: {current_value, target_value}}
+                    $responseData = $data['data'];
+                } elseif (isset($data['current_value'])) {
+                    // Structure: {current_value, target_value}
+                    $responseData = $data;
+                }
+
+                if (!$responseData || !isset($responseData['current_value']) || !isset($responseData['target_value'])) {
                     $results[] = [
                         'year' => $year,
                         'quarter' => $quarter,
                         'status' => 'error',
-                        'message' => 'Format data tidak valid'
+                        'message' => 'Format data tidak valid: ' . substr(json_encode($data), 0, 200)
                     ];
                     continue;
                 }
 
                 // Calculate percentage
-                $currentValue = floatval($data['current_value']);
-                $targetValue = floatval($data['target_value']);
+                $currentValue = floatval($responseData['current_value']);
+                $targetValue = floatval($responseData['target_value']);
                 $percentage = $targetValue > 0 ? ($currentValue / $targetValue) * 100 : 0;
                 $percentage = min($percentage, $config['max_value']);
 
@@ -142,12 +157,16 @@ try {
                     'percentage' => round($percentage, 2)
                 ];
 
-                // Log sync
-                db()->execute(
-                    "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
-                     VALUES (?, ?, ?, 'success', 'Data berhasil disinkronkan', NOW())",
-                    [$monitoringKey, $year, $quarter]
-                );
+                // Log sync (optional)
+                try {
+                    db()->execute(
+                        "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
+                         VALUES (?, ?, ?, 'success', 'Data berhasil disinkronkan', NOW())",
+                        [$monitoringKey, $year, $quarter]
+                    );
+                } catch (Exception $logErr) {
+                    // Ignore if can't log
+                }
 
             } catch (Exception $e) {
                 $results[] = [
