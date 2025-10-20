@@ -9,7 +9,9 @@
   - Menambahkan inisialisasi variabel `$totalCurrentValues`
   - Menambahkan logika untuk mengakumulasi `current_value` untuk setiap item monitoring
   - Memperbarui elemen tampilan untuk menampilkan jumlah total daripada persentase rata-rata
+- Menambahkan script breakdown data untuk tahun 2024 triwulan 1
 
 ### File yang Diubah
 - `index.php` - Memperbarui logika perhitungan dan tampilan dashboard
 - `changelog.md` - Menambahkan catatan perubahan
+- `breakdown-2024-q1.php` - Menambahkan script untuk breakdown nilai per item periode 2024 triwulan 1
