@@ -91,8 +91,11 @@ async function syncAllData() {
 
                     try {
                         const apiUrl = `${config.api_endpoint}?type=triwulan&triwulan=${quarter}&year=${year}&clear_cache=1`;
+                        console.log(`[Sync] Calling API: ${apiUrl}`);
+
                         const dataResponse = await fetch(apiUrl);
                         const apiData = await dataResponse.json();
+                        console.log(`[Sync] API Response for ${config.monitoring_name}:`, apiData);
 
                         // Check if response has nested data structure or direct structure
                         let responseData = null;
@@ -101,15 +104,19 @@ async function syncAllData() {
                         if (apiData.data?.database_record?.current_value !== undefined) {
                             // Structure: {data: {database_record: {current_value, target_value}}}
                             responseData = apiData.data.database_record;
+                            console.log(`[Sync] Using database_record structure`);
                         } else if (apiData.data?.current_value !== undefined) {
                             // Structure: {data: {current_value, target_value}}
                             responseData = apiData.data;
+                            console.log(`[Sync] Using data structure`);
                         } else if (apiData.current_value !== undefined) {
                             // Structure: {current_value, target_value}
                             responseData = apiData;
+                            console.log(`[Sync] Using direct structure`);
                         }
 
                         if (responseData && responseData.current_value !== undefined) {
+                            console.log(`[Sync] Extracted data:`, responseData);
                             // Use target_value from API response if available, otherwise default to config.max_value
                             const targetValue = responseData.target_value !== undefined ? responseData.target_value : config.max_value;
 
@@ -126,17 +133,20 @@ async function syncAllData() {
                             });
 
                             const saveResult = await saveResponse.json();
+                            console.log(`[Sync] Save result for ${config.monitoring_name}:`, saveResult);
                             if (saveResult.success) {
                                 totalSynced++;
+                                console.log(`[Sync] ✓ Successfully synced ${config.monitoring_name} ${year}-Q${quarter}`);
                             } else {
                                 totalFailed++;
+                                console.error(`[Sync] ✗ Failed to save ${config.monitoring_name} ${year}-Q${quarter}:`, saveResult);
                             }
                         } else {
-                            console.warn(`Invalid data structure for ${config.monitoring_name} ${year}-Q${quarter}:`, apiData);
+                            console.warn(`[Sync] ✗ Invalid data structure for ${config.monitoring_name} ${year}-Q${quarter}:`, apiData);
                             totalFailed++;
                         }
                     } catch (error) {
-                        console.error(`Failed to sync ${config.monitoring_name} ${year}-Q${quarter}:`, error);
+                        console.error(`[Sync] ✗ Exception for ${config.monitoring_name} ${year}-Q${quarter}:`, error);
                         totalFailed++;
                     }
                 }
@@ -211,8 +221,11 @@ async function syncLatestData() {
 
             try {
                 const apiUrl = `${config.api_endpoint}?type=triwulan&triwulan=${currentQuarter}&year=${currentYear}&clear_cache=1`;
+                console.log(`[Sync Latest] Calling API: ${apiUrl}`);
+
                 const dataResponse = await fetch(apiUrl);
                 const apiData = await dataResponse.json();
+                console.log(`[Sync Latest] API Response for ${config.monitoring_name}:`, apiData);
 
                 // Check if response has nested data structure or direct structure
                 let responseData = null;
@@ -221,15 +234,19 @@ async function syncLatestData() {
                 if (apiData.data?.database_record?.current_value !== undefined) {
                     // Structure: {data: {database_record: {current_value, target_value}}}
                     responseData = apiData.data.database_record;
+                    console.log(`[Sync Latest] Using database_record structure`);
                 } else if (apiData.data?.current_value !== undefined) {
                     // Structure: {data: {current_value, target_value}}
                     responseData = apiData.data;
+                    console.log(`[Sync Latest] Using data structure`);
                 } else if (apiData.current_value !== undefined) {
                     // Structure: {current_value, target_value}
                     responseData = apiData;
+                    console.log(`[Sync Latest] Using direct structure`);
                 }
 
                 if (responseData && responseData.current_value !== undefined) {
+                    console.log(`[Sync Latest] Extracted data:`, responseData);
                     // Use target_value from API response if available, otherwise default to config.max_value
                     const targetValue = responseData.target_value !== undefined ? responseData.target_value : config.max_value;
 
@@ -246,17 +263,20 @@ async function syncLatestData() {
                     });
 
                     const saveResult = await saveResponse.json();
+                    console.log(`[Sync Latest] Save result for ${config.monitoring_name}:`, saveResult);
                     if (saveResult.success) {
                         totalSynced++;
+                        console.log(`[Sync Latest] ✓ Successfully synced ${config.monitoring_name}`);
                     } else {
                         totalFailed++;
+                        console.error(`[Sync Latest] ✗ Failed to save ${config.monitoring_name}:`, saveResult);
                     }
                 } else {
-                    console.warn(`Invalid data structure for ${config.monitoring_name}:`, apiData);
+                    console.warn(`[Sync Latest] ✗ Invalid data structure for ${config.monitoring_name}:`, apiData);
                     totalFailed++;
                 }
             } catch (error) {
-                console.error(`Failed to sync ${config.monitoring_name}:`, error);
+                console.error(`[Sync Latest] ✗ Exception for ${config.monitoring_name}:`, error);
                 totalFailed++;
             }
         }

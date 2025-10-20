@@ -2,6 +2,36 @@
 
 ## [Rilis Terbaru] - 2025-10-20
 
+### Penambahan Console Logging & Troubleshooting Guide (20 Oktober 2025 - Sore)
+- **Menambahkan console logging untuk debugging sync:**
+  - Log setiap API call dengan URL lengkap
+  - Log response dari API untuk setiap sistem
+  - Log struktur data yang digunakan (database_record/data/direct)
+  - Log hasil save ke database (success/failed)
+  - Menambahkan prefix `[Sync]` dan `[Sync Latest]` untuk membedakan mode
+  - Menambahkan emoji ✓ (berhasil) dan ✗ (gagal) untuk mudah dibaca
+
+- **Membuat dokumentasi troubleshooting lengkap:**
+  - Panduan cara melihat log (file & browser console)
+  - Troubleshooting 5 masalah umum sync gagal
+  - Status API endpoint yang aktif/tidak aktif
+  - Cara testing manual setiap komponen
+  - Expected behavior untuk sync berhasil/gagal
+  - 3 opsi mengatasi "Gagal: 6" (install API, input manual, nonaktifkan sistem)
+
+### File yang Diubah/Ditambah
+- `assets/js/admin-sync.js` - Menambahkan console.log di setiap tahap sync
+- `TROUBLESHOOTING.md` - Dokumentasi lengkap troubleshooting (file baru)
+
+### Penjelasan "Berhasil: 0, Gagal: 6"
+Dari 26 sistem monitoring, hanya 6 yang memiliki API endpoint:
+- ✅ **SIPP** - Aktif dan berfungsi normal
+- ❌ **Mediasi, E-Court, Gugatan, Banding, Kasasi** - API endpoint 404 (belum di-install/offline)
+
+20 sistem lainnya tidak memiliki API dan harus diinput manual melalui admin panel.
+
+---
+
 ### Perbaikan Sync Data (20 Oktober 2025 - Sore)
 - **Memperbaiki fungsi Sync Latest Data yang gagal:**
   - Menambahkan dukungan untuk berbagai format response API (nested structures)
