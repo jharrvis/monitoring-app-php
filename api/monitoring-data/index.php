@@ -143,9 +143,9 @@ function handlePost() {
         jsonResponse(['error' => 'Monitoring config not found'], 404);
     }
 
-    // Calculate percentage based on current_value / max_value
-    $percentage = $config['max_value'] > 0
-        ? ($input['current_value'] / $config['max_value']) * 100
+    // Calculate percentage based on current_value / target_value
+    $percentage = $input['target_value'] > 0
+        ? ($input['current_value'] / $input['target_value']) * 100
         : 0;
 
     // Check if data already exists
@@ -235,8 +235,9 @@ function handlePut() {
 
         $currentValue = $input['current_value'] ?? $data['current_value'];
 
-        // Calculate percentage based on current_value / max_value
-        $percentage = $config['max_value'] > 0 ? ($currentValue / $config['max_value']) * 100 : 0;
+        // Calculate percentage based on current_value / target_value
+        $targetValue = $input['target_value'] ?? $data['target_value'];
+        $percentage = $targetValue > 0 ? ($currentValue / $targetValue) * 100 : 0;
 
         $updates[] = "percentage = ?";
         $params[] = round($percentage, 2);

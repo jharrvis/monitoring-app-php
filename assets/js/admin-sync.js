@@ -95,6 +95,9 @@ async function syncAllData() {
                         const apiData = await dataResponse.json();
 
                         if (apiData && apiData.current_value !== undefined) {
+                            // Use target_value from API response if available, otherwise default to config.max_value
+                            const targetValue = apiData.target_value !== undefined ? apiData.target_value : config.max_value;
+                            
                             const saveResponse = await fetch('../api/monitoring-data/index.php', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
@@ -103,7 +106,7 @@ async function syncAllData() {
                                     year: year,
                                     quarter: quarter,
                                     current_value: apiData.current_value,
-                                    target_value: config.max_value
+                                    target_value: targetValue
                                 })
                             });
 
@@ -194,6 +197,9 @@ async function syncLatestData() {
                 const apiData = await dataResponse.json();
 
                 if (apiData && apiData.current_value !== undefined) {
+                    // Use target_value from API response if available, otherwise default to config.max_value
+                    const targetValue = apiData.target_value !== undefined ? apiData.target_value : config.max_value;
+                    
                     const saveResponse = await fetch('../api/monitoring-data/index.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -202,7 +208,7 @@ async function syncLatestData() {
                             year: currentYear,
                             quarter: currentQuarter,
                             current_value: apiData.current_value,
-                            target_value: config.max_value
+                            target_value: targetValue
                         })
                     });
 
