@@ -13,9 +13,15 @@ $appDescription = $settings['app_description'] ?? 'Smart View Kinerja Satker PA 
 $sql = "SELECT * FROM monitoring_configs WHERE is_active = 1 ORDER BY page_number, display_order";
 $monitoringConfigs = db()->fetchAll($sql);
 
-// Get filter from URL or use latest data
-$filterYear = isset($_GET['year']) ? (int)$_GET['year'] : null;
-$filterQuarter = isset($_GET['quarter']) ? (int)$_GET['quarter'] : null;
+// Get filter from URL or default to current year/quarter
+// If no filter is provided, default to current year and quarter
+if (!isset($_GET['year']) || !isset($_GET['quarter'])) {
+    $filterYear = getCurrentYear();
+    $filterQuarter = getCurrentQuarter();
+} else {
+    $filterYear = (int)$_GET['year'];
+    $filterQuarter = (int)$_GET['quarter'];
+}
 
 $currentQuarter = getCurrentQuarter();
 $currentYear = getCurrentYear();
@@ -704,7 +710,6 @@ $currentPage = 1;
                     <div class="flex items-center gap-2 bg-white px-4 py-2 rounded-lg border-2 border-gray-200">
                         <label class="text-sm font-semibold text-gray-700">Tahun:</label>
                         <select id="filterYear" onchange="applyFilter()" class="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Terbaru</option>
                             <?php foreach ($availableYears as $yearRow): ?>
                                 <option value="<?= $yearRow['year'] ?>" <?= ($filterYear == $yearRow['year']) ? 'selected' : '' ?>>
                                     <?= $yearRow['year'] ?>
@@ -714,7 +719,6 @@ $currentPage = 1;
 
                         <label class="text-sm font-semibold text-gray-700 ml-2">Triwulan:</label>
                         <select id="filterQuarter" onchange="applyFilter()" class="px-3 py-1 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="">Terbaru</option>
                             <option value="1" <?= ($filterQuarter == 1) ? 'selected' : '' ?>>I</option>
                             <option value="2" <?= ($filterQuarter == 2) ? 'selected' : '' ?>>II</option>
                             <option value="3" <?= ($filterQuarter == 3) ? 'selected' : '' ?>>III</option>
@@ -1069,12 +1073,11 @@ $currentPage = 1;
             let url = window.location.pathname;
             const params = new URLSearchParams();
 
-            if (year) params.append('year', year);
-            if (quarter) params.append('quarter', quarter);
+            // Always include both year and quarter
+            params.append('year', year);
+            params.append('quarter', quarter);
 
-            if (params.toString()) {
-                url += '?' + params.toString();
-            }
+            url += '?' + params.toString();
 
             window.location.href = url;
         }
