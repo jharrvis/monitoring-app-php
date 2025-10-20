@@ -90,7 +90,7 @@ async function syncAllData() {
                     if (year === currentYear && quarter > currentQ) continue;
 
                     try {
-                        const apiUrl = `${config.api_endpoint}?year=${year}&quarter=${quarter}`;
+                        const apiUrl = `${config.api_endpoint}?type=triwulan&triwulan=${quarter}&year=${year}&clear_cache=1`;
                         const dataResponse = await fetch(apiUrl);
                         const apiData = await dataResponse.json();
 
@@ -192,7 +192,7 @@ async function syncLatestData() {
             document.getElementById('syncProgress').innerHTML = `Syncing ${config.monitoring_name}...<br>Berhasil: ${totalSynced} | Gagal: ${totalFailed}`;
 
             try {
-                const apiUrl = `${config.api_endpoint}?year=${currentYear}&quarter=${currentQuarter}`;
+                const apiUrl = `${config.api_endpoint}?type=triwulan&triwulan=${currentQuarter}&year=${currentYear}&clear_cache=1`;
                 const dataResponse = await fetch(apiUrl);
                 const apiData = await dataResponse.json();
 

@@ -143,10 +143,18 @@ function handlePost() {
         jsonResponse(['error' => 'Monitoring config not found'], 404);
     }
 
+    // Get config to check max_value for percentage cap
+    $config = db()->fetchOne("SELECT max_value FROM monitoring_configs WHERE id = ?", [$input['monitoring_id']]);
+    
     // Calculate percentage based on current_value / target_value
     $percentage = $input['target_value'] > 0
         ? ($input['current_value'] / $input['target_value']) * 100
         : 0;
+    
+    // Cap percentage to max_value if config exists
+    if ($config) {
+        $percentage = min($percentage, $config['max_value']);
+    }
 
     // Check if data already exists
     $existing = db()->fetchOne(
@@ -235,9 +243,17 @@ function handlePut() {
 
         $currentValue = $input['current_value'] ?? $data['current_value'];
 
+        // Get config to check max_value for percentage cap
+        $config = db()->fetchOne("SELECT max_value FROM monitoring_configs WHERE id = ?", [$existing['monitoring_id']]);
+        
         // Calculate percentage based on current_value / target_value
         $targetValue = $input['target_value'] ?? $data['target_value'];
         $percentage = $targetValue > 0 ? ($currentValue / $targetValue) * 100 : 0;
+        
+        // Cap percentage to max_value if config exists
+        if ($config) {
+            $percentage = min($percentage, $config['max_value']);
+        }
 
         $updates[] = "percentage = ?";
         $params[] = round($percentage, 2);
