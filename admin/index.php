@@ -139,6 +139,9 @@ $user = auth()->getUser();
                 <button onclick="switchTab('input-data')" class="tab-button px-6 py-3 font-semibold text-gray-700 border-b-2 border-transparent hover:border-blue-500">
                     <i class="fas fa-chart-bar mr-2"></i>Input Data
                 </button>
+                <button onclick="switchTab('log')" class="tab-button px-6 py-3 font-semibold text-gray-700 border-b-2 border-transparent hover:border-blue-500">
+                    <i class="fas fa-file-alt mr-2"></i>Log
+                </button>
                 <button onclick="switchTab('pengaturan')" class="tab-button px-6 py-3 font-semibold text-gray-700 border-b-2 border-transparent hover:border-blue-500">
                     <i class="fas fa-cog mr-2"></i>Pengaturan
                 </button>
@@ -265,6 +268,92 @@ $user = auth()->getUser();
                             </div>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Content: Log -->
+        <div id="tab-log" class="tab-content">
+            <div class="bg-white rounded-lg shadow-md">
+                <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-bold text-gray-900">Log Sinkronisasi Data</h2>
+                        <p class="text-sm text-gray-600 mt-1">Riwayat proses sinkronisasi manual dan terjadwal</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="refreshSyncLogs()" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition flex items-center gap-2">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh
+                        </button>
+                        <button onclick="clearOldLogs()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition flex items-center gap-2">
+                            <i class="fas fa-trash-alt"></i>
+                            Bersihkan Log Lama
+                        </button>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <!-- Filter -->
+                    <div class="mb-4 flex gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                            <select id="logFilterStatus" onchange="refreshSyncLogs()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Semua Status</option>
+                                <option value="success">Success</option>
+                                <option value="error">Error</option>
+                                <option value="running">Running</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
+                            <select id="logFilterType" onchange="refreshSyncLogs()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                                <option value="">Semua Tipe</option>
+                                <option value="manual">Manual</option>
+                                <option value="scheduled">Terjadwal</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Logs Table -->
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white border border-gray-200">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">ID</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">Sistem</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">Tipe</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">Status</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">Pesan</th>
+                                    <th class="px-4 py-3 text-center text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">Berhasil/Gagal</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">Waktu Mulai</th>
+                                    <th class="px-4 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider border-b">Durasi</th>
+                                </tr>
+                            </thead>
+                            <tbody id="syncLogsTableBody">
+                                <tr>
+                                    <td colspan="8" class="px-4 py-8 text-center text-gray-500">
+                                        <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                                        <p>Memuat data log...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    <div id="logPagination" class="mt-4 flex justify-between items-center">
+                        <div class="text-sm text-gray-600">
+                            <span id="logInfo">Menampilkan 0 log</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="loadSyncLogs(logPaginationOffset - 50)" id="logPrevBtn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50" disabled>
+                                <i class="fas fa-chevron-left"></i> Sebelumnya
+                            </button>
+                            <button onclick="loadSyncLogs(logPaginationOffset + 50)" id="logNextBtn" class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 disabled:opacity-50">
+                                Selanjutnya <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -579,5 +668,6 @@ $user = auth()->getUser();
 
     <script src="../assets/js/admin.js"></script>
     <script src="../assets/js/admin-sync.js"></script>
+    <script src="../assets/js/admin-logs.js"></script>
 </body>
 </html>

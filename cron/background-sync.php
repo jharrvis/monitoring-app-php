@@ -24,6 +24,10 @@ function writeLog($message) {
 
 writeLog("=== Background Sync Started ===");
 
+$syncStartTime = time();
+$totalSynced = 0;
+$totalFailed = 0;
+
 try {
     // Get all active monitoring configs with API endpoints
     $configs = db()->fetchAll(
@@ -117,49 +121,46 @@ try {
                 writeLog("  Inserted: Current={$currentValue}, Target={$targetValue}, Percentage=" . round($percentage, 2) . "%");
             }
 
-            // Log sync (optional - if table exists)
-            try {
-                db()->execute(
-                    "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
-                     VALUES (?, ?, ?, 'success', 'Background sync completed', NOW())",
-                    [$config['monitoring_key'], $currentYear, $currentQuarter]
-                );
-            } catch (Exception $logErr) {
-                // If sync_logs table structure is different or doesn't exist, just log it
-                writeLog("  Note: Could not log to sync_logs table");
-            }
-
+            $totalSynced++;
             writeLog("  SUCCESS");
 
         } catch (Exception $e) {
             writeLog("  ERROR: " . $e->getMessage());
-
-            // Log error (optional)
-            try {
-                db()->execute(
-                    "INSERT INTO sync_logs (sync_type, year, quarter, status, message, synced_at)
-                     VALUES (?, ?, ?, 'error', ?, NOW())",
-                    [$config['monitoring_key'], $currentYear, $currentQuarter, $e->getMessage()]
-                );
-            } catch (Exception $logErr) {
-                // Ignore if can't log
-            }
+            $totalFailed++;
         }
 
         // Small delay between requests
         usleep(500000); // 500ms
     }
 
-    // Update sync settings (if table exists)
+    // Log summary to database
+    $syncDuration = time() - $syncStartTime;
+    $syncStatus = $totalFailed === 0 ? 'success' : ($totalSynced > 0 ? 'success' : 'error');
+    $syncMessage = "Background sync completed: {$totalSynced} berhasil, {$totalFailed} gagal";
+
     try {
         db()->execute(
-            "UPDATE sync_settings SET last_sync_time = NOW() WHERE id = 1"
+            "INSERT INTO sync_logs (
+                monitoring_key, sync_type, status, message,
+                total_periods, successful_periods, failed_periods,
+                started_at, completed_at, duration_seconds
+            ) VALUES ('SCHEDULED', 'scheduled', ?, ?, ?, ?, ?, FROM_UNIXTIME(?), NOW(), ?)",
+            [
+                $syncStatus,
+                $syncMessage,
+                $totalSynced + $totalFailed,
+                $totalSynced,
+                $totalFailed,
+                $syncStartTime,
+                $syncDuration
+            ]
         );
+        writeLog("Sync log saved to database");
     } catch (Exception $e) {
-        // Ignore if table doesn't exist
-        writeLog("Note: sync_settings table not found (optional)");
+        writeLog("Note: Could not save sync log: " . $e->getMessage());
     }
 
+    writeLog("Summary: Total Synced={$totalSynced}, Total Failed={$totalFailed}, Duration={$syncDuration}s");
     writeLog("=== Background Sync Completed Successfully ===\n");
 
 } catch (Exception $e) {

@@ -150,4 +150,56 @@ function toRoman($num) {
 function getQuarterLabel($quarter) {
     return 'Triwulan ' . toRoman($quarter);
 }
+
+// Sync Logging Functions
+function startSyncLog($monitoringKey, $syncType = 'manual', $totalPeriods = 0) {
+    try {
+        $sql = "INSERT INTO sync_logs (
+                    monitoring_key, sync_type, status, message,
+                    total_periods, successful_periods, failed_periods,
+                    started_at
+                ) VALUES (?, ?, 'running', 'Sync started', ?, 0, 0, NOW())";
+
+        db()->execute($sql, [$monitoringKey, $syncType, $totalPeriods]);
+        return db()->lastInsertId();
+    } catch (Exception $e) {
+        error_log("Failed to start sync log: " . $e->getMessage());
+        return null;
+    }
+}
+
+function updateSyncLog($logId, $status, $message, $successCount = 0, $failCount = 0) {
+    if (!$logId) return false;
+
+    try {
+        $sql = "UPDATE sync_logs
+                SET status = ?,
+                    message = ?,
+                    successful_periods = ?,
+                    failed_periods = ?,
+                    completed_at = NOW(),
+                    duration_seconds = TIMESTAMPDIFF(SECOND, started_at, NOW())
+                WHERE id = ?";
+
+        db()->execute($sql, [$status, $message, $successCount, $failCount, $logId]);
+        return true;
+    } catch (Exception $e) {
+        error_log("Failed to update sync log: " . $e->getMessage());
+        return false;
+    }
+}
+
+function logSyncError($monitoringKey, $syncType, $errorMessage) {
+    try {
+        $sql = "INSERT INTO sync_logs (
+                    monitoring_key, sync_type, status, message,
+                    total_periods, successful_periods, failed_periods,
+                    started_at, completed_at, duration_seconds
+                ) VALUES (?, ?, 'error', ?, 0, 0, 0, NOW(), NOW(), 0)";
+
+        db()->execute($sql, [$monitoringKey, $syncType, $errorMessage]);
+    } catch (Exception $e) {
+        error_log("Failed to log sync error: " . $e->getMessage());
+    }
+}
 ?>

@@ -60,6 +60,9 @@ async function syncAllData() {
         }
     });
 
+    const syncStartTime = Date.now();
+    console.log('[Sync All] Started at:', new Date().toISOString());
+
     try {
         const configResponse = await fetch('../api/monitoring-configs/index.php');
         const configResult = await configResponse.json();
@@ -153,16 +156,37 @@ async function syncAllData() {
             }
         }
 
+        const syncDuration = Math.round((Date.now() - syncStartTime) / 1000);
+        console.log(`[Sync All] Completed in ${syncDuration}s - Success: ${totalSynced}, Failed: ${totalFailed}`);
+
+        // Log to database (best effort, don't block on failure)
+        fetch('../api/monitoring-data/index.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'log_sync',
+                monitoring_key: 'ALL',
+                sync_type: 'manual',
+                status: totalFailed === 0 ? 'success' : (totalSynced > 0 ? 'success' : 'error'),
+                message: `Sync All Data completed: ${totalSynced} berhasil, ${totalFailed} gagal`,
+                successful: totalSynced,
+                failed: totalFailed,
+                duration: syncDuration
+            })
+        }).catch(err => console.warn('[Sync All] Failed to log:', err));
+
         Swal.fire({
-            icon: 'success',
+            icon: totalFailed === 0 ? 'success' : (totalSynced > 0 ? 'warning' : 'error'),
             title: 'Sync Selesai!',
-            html: `<p>Berhasil: <strong>${totalSynced}</strong></p><p>Gagal: <strong>${totalFailed}</strong></p>`,
+            html: `<p>Berhasil: <strong>${totalSynced}</strong></p><p>Gagal: <strong>${totalFailed}</strong></p><p>Durasi: <strong>${syncDuration}s</strong></p>`,
             timer: 3000
         });
 
         await loadMonitoringData();
     } catch (error) {
-        console.error('Sync error:', error);
+        const syncDuration = Math.round((Date.now() - syncStartTime) / 1000);
+        console.error('[Sync All] Error:', error);
+
         Swal.fire({ icon: 'error', title: 'Sync Gagal', text: error.message });
     }
 }
@@ -193,6 +217,9 @@ async function syncLatestData() {
             Swal.showLoading();
         }
     });
+
+    const syncStartTime = Date.now();
+    console.log('[Sync Latest] Started at:', new Date().toISOString());
 
     try {
         const now = new Date();
@@ -281,16 +308,36 @@ async function syncLatestData() {
             }
         }
 
+        const syncDuration = Math.round((Date.now() - syncStartTime) / 1000);
+        console.log(`[Sync Latest] Completed in ${syncDuration}s - Success: ${totalSynced}, Failed: ${totalFailed}`);
+
+        // Log to database (best effort)
+        fetch('../api/monitoring-data/index.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'log_sync',
+                monitoring_key: 'LATEST',
+                sync_type: 'manual',
+                status: totalFailed === 0 ? 'success' : (totalSynced > 0 ? 'success' : 'error'),
+                message: `Sync Latest Data completed: ${totalSynced} berhasil, ${totalFailed} gagal`,
+                successful: totalSynced,
+                failed: totalFailed,
+                duration: syncDuration
+            })
+        }).catch(err => console.warn('[Sync Latest] Failed to log:', err));
+
         Swal.fire({
-            icon: 'success',
+            icon: totalFailed === 0 ? 'success' : (totalSynced > 0 ? 'warning' : 'error'),
             title: 'Sync Selesai!',
-            html: `<p>Berhasil: <strong>${totalSynced}</strong></p><p>Gagal: <strong>${totalFailed}</strong></p>`,
+            html: `<p>Berhasil: <strong>${totalSynced}</strong></p><p>Gagal: <strong>${totalFailed}</strong></p><p>Durasi: <strong>${syncDuration}s</strong></p>`,
             timer: 3000
         });
 
         await loadMonitoringData();
     } catch (error) {
-        console.error('Sync error:', error);
+        const syncDuration = Math.round((Date.now() - syncStartTime) / 1000);
+        console.error('[Sync Latest] Error:', error);
         Swal.fire({ icon: 'error', title: 'Sync Gagal', text: error.message });
     }
 }
