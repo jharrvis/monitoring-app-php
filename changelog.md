@@ -17,8 +17,10 @@
   - Nilai target yang benar (2) perlu diperbaiki di sumber data API
 - Nilai berbeda antara filter "Terbaru" dan periode spesifik (contoh: 2025 Q3)
   - Ini wajar karena menunjukkan data dari periode waktu yang berbeda
-  - Filter "Terbaru" menampilkan data terkini dari setiap sistem
+  - Filter "Terbaru" menampilkan data terkini dari setiap sistem (tidak dibatasi tahun/kuartal)
   - Filter tahun/kuartal menampilkan data untuk periode yang dipilih
+  - "Terbaru" + "Q1" berarti data terbaru dari semua monitoring, lalu ditampilkan hanya yang dari Q1
+  - "2025" + "Q1" berarti data spesifik dari tahun 2025 kuartal 1
 
 ### File yang Diubah
 - `index.php` - Memperbarui logika perhitungan dan tampilan dashboard
@@ -26,3 +28,4 @@
 - `breakdown-2024-q1.php` - Menambahkan script untuk breakdown nilai per item periode 2024 triwulan 1
 - `check-kasasi-pk.php` - Menambahkan script untuk memeriksa konfigurasi dan data Kasasi dan PK
 - `compare-data.php` - Menambahkan script untuk membandingkan data terbaru vs periode spesifik
+- `filter-explanation.php` - Menambahkan script penjelasan tentang perbedaan filter 'Terbaru' dan filter periode spesifik
