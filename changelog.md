@@ -11,7 +11,13 @@
   - Memperbarui elemen tampilan untuk menampilkan jumlah total daripada persentase rata-rata
 - Menambahkan script breakdown data untuk tahun 2024 triwulan 1
 
+### Isu Ditemukan
+- Nilai target untuk item "Kasasi dan PK" saat ini adalah 100, seharusnya 2
+  - Ditemukan bahwa target value diperoleh dari API endpoint masing-masing monitoring
+  - Nilai target yang benar (2) perlu diperbaiki di sumber data API
+
 ### File yang Diubah
 - `index.php` - Memperbarui logika perhitungan dan tampilan dashboard
 - `changelog.md` - Menambahkan catatan perubahan
 - `breakdown-2024-q1.php` - Menambahkan script untuk breakdown nilai per item periode 2024 triwulan 1
+- `check-kasasi-pk.php` - Menambahkan script untuk memeriksa konfigurasi dan data Kasasi dan PK
