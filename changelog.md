@@ -15,9 +15,14 @@
 - Nilai target untuk item "Kasasi dan PK" saat ini adalah 100, seharusnya 2
   - Ditemukan bahwa target value diperoleh dari API endpoint masing-masing monitoring
   - Nilai target yang benar (2) perlu diperbaiki di sumber data API
+- Nilai berbeda antara filter "Terbaru" dan periode spesifik (contoh: 2025 Q3)
+  - Ini wajar karena menunjukkan data dari periode waktu yang berbeda
+  - Filter "Terbaru" menampilkan data terkini dari setiap sistem
+  - Filter tahun/kuartal menampilkan data untuk periode yang dipilih
 
 ### File yang Diubah
 - `index.php` - Memperbarui logika perhitungan dan tampilan dashboard
 - `changelog.md` - Menambahkan catatan perubahan
 - `breakdown-2024-q1.php` - Menambahkan script untuk breakdown nilai per item periode 2024 triwulan 1
 - `check-kasasi-pk.php` - Menambahkan script untuk memeriksa konfigurasi dan data Kasasi dan PK
+- `compare-data.php` - Menambahkan script untuk membandingkan data terbaru vs periode spesifik
