@@ -1,10 +1,11 @@
 <?php
 // Database Configuration
-define('DB_HOST', '167.172.88.142');
-define('DB_USER', 'generator_monitoring');
-define('DB_PASS', '}Pqm;?_0bgg()mv!');
-define('DB_NAME', 'generator_monitoring');
-define('DB_PORT', '3306');
+// Using environment variables for security
+define('DB_HOST', getenv('DB_HOST') ?: '');
+define('DB_USER', getenv('DB_USER') ?: '');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: '');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
 
 // Application Configuration
 define('APP_NAME', 'Smartvinesa v.13');
