@@ -32,11 +32,21 @@ cd /path/to/htdocs
 Edit file `includes/config.php`:
 
 ```php
-define('DB_HOST', '167.172.88.142');
-define('DB_USER', 'generator_monitoring');
-define('DB_PASS', '}Pqm;?_0bgg()mv!');
+define('DB_HOST', 'localhost'); // Ganti dengan host database Anda
+define('DB_USER', 'db_user');   // Ganti dengan username database Anda
+define('DB_PASS', 'db_pass');   // Ganti dengan password database Anda
 define('DB_NAME', 'monitoring_db');
 define('DB_PORT', '3306');
+```
+
+Atau gunakan environment variables (lebih aman untuk production):
+
+```php
+define('DB_HOST', getenv('DB_HOST') ?: 'localhost');
+define('DB_USER', getenv('DB_USER') ?: '');
+define('DB_PASS', getenv('DB_PASS') ?: '');
+define('DB_NAME', getenv('DB_NAME') ?: 'monitoring_db');
+define('DB_PORT', getenv('DB_PORT') ?: '3306');
 ```
 
 ### 3. Import Database Schema
@@ -59,8 +69,8 @@ chmod -R 777 monitoring-app-php/logs
 - **Admin Login**: `http://localhost/monitoring-app-php/admin/login.php`
 
 **Default Credentials:**
-- Username: `admin`
-- Password: `admin123`
+- Username: `admin` (ubah setelah login pertama)
+- Password: `password_anda` (buat password yang kuat)
 
 ## 📁 Struktur Folder
 
